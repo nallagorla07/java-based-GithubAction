@@ -7,9 +7,6 @@ on:
 
 jobs:
 
-  # -----------------------------
-  # 1️⃣ COMPILE STAGE
-  # -----------------------------
   compile:
     runs-on: self-hosted
 
@@ -28,9 +25,6 @@ jobs:
         run: mvn clean compile
 
 
-  # -----------------------------
-  # 2️⃣ SECURITY STAGE
-  # -----------------------------
   security-check:
     runs-on: self-hosted
     needs: compile
@@ -39,18 +33,19 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Trivy File System Scan
-      - name: Run Trivy Scan
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          format: table
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: 0   # change to 1 if you want pipeline to fail
+      # Install Trivy
+      - name: Install Trivy
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update -y
+          sudo apt-get install -y trivy
 
-      # Gitleaks Secret Scan
+      - name: Run Trivy File System Scan
+        run: trivy fs --severity HIGH,CRITICAL . || true
+      # Install Gitleaks
       - name: Run Gitleaks Scan
         uses: gitleaks/gitleaks-action@v2
         with:
@@ -62,10 +57,6 @@ jobs:
           name: gitleaks-report
           path: gitleaks-report.json
 
-
-  # -----------------------------
-  # 3️⃣ TEST STAGE
-  # -----------------------------
   test:
     runs-on: self-hosted
     needs: security-check
@@ -85,9 +76,6 @@ jobs:
         run: mvn test
 
 
-  # -----------------------------
-  # 4️⃣ BUILD + SONAR STAGE
-  # -----------------------------
   build_and_sonar_scan:
     runs-on: self-hosted
     needs: test
@@ -127,3 +115,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+resolve above error ?
