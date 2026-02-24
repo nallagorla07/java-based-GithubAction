@@ -102,11 +102,11 @@ jobs:
           name: app-jar
           path: target/*.jar
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      - name: Build and Sonar Scan
+        run: |
+          mvn clean verify sonar:sonar \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       - name: SonarQube Quality Gate Check
         uses: sonarsource/sonarqube-quality-gate-action@v1
