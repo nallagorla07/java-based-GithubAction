@@ -86,8 +86,11 @@ jobs:
       # ✅ Build + Test + Sonar in ONE command
       - name: Build and Sonar Scan
         run: |
-          mvn clean verify sonar:sonar 
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+           mvn clean verify \
+           org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
+           -Dsonar.projectKey=bankapp \
+           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       - uses: actions/upload-artifact@v4
         with:
