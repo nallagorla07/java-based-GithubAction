@@ -84,8 +84,6 @@ jobs:
           cache: maven
 
       # ✅ Build + Test + Sonar in ONE command
-      - name: Debug Sonar URL
-        run: echo "Sonar URL is: ${{ secrets.SONAR_HOST_URL }}"
       - name: Build and Sonar Scan
         run: |
            mvn clean verify \
