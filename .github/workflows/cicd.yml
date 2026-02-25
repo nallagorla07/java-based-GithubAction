@@ -52,35 +52,33 @@ jobs:
   build_and_sonar_scan:
     runs-on: self-hosted
     needs: test
-    # 🚨 Removed 'environment: production' to ensure it pulls from Repository Secrets
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
 
-      - name: Verify Secrets
-        env:
-          # We check the secrets directly from the repository scope
-          URL_VAL: ${{ secrets.SONAR_HOST_URL }}
-          TOKEN_VAL: ${{ secrets.SONAR_TOKEN }}
+      - name: Debug and Verify Secrets
         run: |
-          if [ -z "$URL_VAL" ]; then
-            echo "❌ SONAR_HOST_URL is missing! Please add it to Settings > Secrets > Actions"
+          echo "Checking for secrets..."
+          if [ -z "${{ secrets.SONAR_HOST_URL }}" ]; then
+            echo "❌ ERROR: SONAR_HOST_URL is totally empty in GitHub."
+            echo "Go to Settings -> Secrets and variables -> Actions -> Repository Secrets"
+            echo "Ensure the name is exactly: SONAR_HOST_URL"
+            exit 1
+          else
+            echo "✅ SONAR_HOST_URL was found!"
+          fi
+          
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "❌ ERROR: SONAR_TOKEN is totally empty."
             exit 1
           fi
-          if [ -z "$TOKEN_VAL" ]; then
-            echo "❌ SONAR_TOKEN is missing! Please add it to Settings > Secrets > Actions"
-            exit 1
-          fi
-          echo "✅ Secrets found. Proceeding with Build..."
 
       - name: Build and Sonar Scan
         env:
@@ -90,8 +88,8 @@ jobs:
           mvn clean verify \
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=bankapp \
-          -Dsonar.host.url=$SONAR_HOST_URL \
-          -Dsonar.login=$SONAR_TOKEN
+          -Dsonar.host.url="${SONAR_HOST_URL}" \
+          -Dsonar.login="${SONAR_TOKEN}"
      
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
