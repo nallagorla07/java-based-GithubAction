@@ -63,27 +63,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Debug and Verify Secrets
-        run: |
-          echo "Checking for secrets..."
-          if [ -z "${{ secrets.SONAR_HOST_URL }}" ]; then
-            echo "❌ ERROR: SONAR_HOST_URL is totally empty in GitHub."
-            echo "Go to Settings -> Secrets and variables -> Actions -> Repository Secrets"
-            echo "Ensure the name is exactly: SONAR_HOST_URL"
-            exit 1
-          else
-            echo "✅ SONAR_HOST_URL was found!"
-          fi
-          
-          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
-            echo "❌ ERROR: SONAR_TOKEN is totally empty."
-            exit 1
-          fi
-
       - name: Build and Sonar Scan
         env:
+          # Try to get from Secrets first, then Variables as a backup
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || vars.SONAR_HOST_URL }}
         run: |
           mvn clean verify \
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
