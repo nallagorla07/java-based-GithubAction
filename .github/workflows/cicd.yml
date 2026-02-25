@@ -69,6 +69,8 @@ jobs:
   build_and_sonar_scan:
     runs-on: self-hosted
     needs: test
+    # ✅ This links the job to the environment where your secrets are stored
+    environment: production 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -82,21 +84,21 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # ✅ Robust validation: Check if secrets are mapped correctly
       - name: Check Sonar Secrets
         env:
-          URL_CHECK: ${{ secrets.SONAR_HOST_URL }}
-          TOKEN_CHECK: ${{ secrets.SONAR_TOKEN }}
+          # Mapping secrets to local variables for safe shell checking
+          URL_VAL: ${{ secrets.SONAR_HOST_URL }}
+          TOKEN_VAL: ${{ secrets.SONAR_TOKEN }}
         run: |
-          if [ -z "$URL_CHECK" ]; then
-            echo "SONAR_HOST_URL is MISSING in GitHub Secrets ❌"
+          if [ -z "$URL_VAL" ]; then
+            echo "Error: SONAR_HOST_URL is missing in the 'production' environment! ❌"
             exit 1
           fi
-          if [ -z "$TOKEN_CHECK" ]; then
-            echo "SONAR_TOKEN is MISSING in GitHub Secrets ❌"
+          if [ -z "$TOKEN_VAL" ]; then
+            echo "Error: SONAR_TOKEN is missing in the 'production' environment! ❌"
             exit 1
           fi
-          echo "Sonar secrets are VALID ✅"
+          echo "Sonar secrets verified successfully ✅"
 
       - name: Build and Sonar Scan
         env:
