@@ -87,7 +87,6 @@ jobs:
       - name: Build and Sonar Scan
         run: |
           mvn clean verify sonar:sonar 
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} 
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       - uses: actions/upload-artifact@v4
